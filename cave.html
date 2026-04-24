@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ma Cave à Vin</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --burgundy: #6B2D3E;
+    --burgundy-light: #8B4455;
+    --burgundy-pale: #F5EDEE;
+    --gold: #C4A456;
+    --gold-light: #E8D5A0;
+    --cream: #FAF7F2;
+    --cream-dark: #F0EBE3;
+    --ink: #1C1410;
+    --ink-mid: #4A3728;
+    --ink-muted: #8B7355;
+    --white: #FFFFFF;
+    --border: rgba(100,60,40,0.15);
+    --border-strong: rgba(100,60,40,0.3);
+    --shadow: 0 2px 12px rgba(28,20,16,0.08);
+    --shadow-md: 0 4px 24px rgba(28,20,16,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--burgundy);
+    color: var(--cream);
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(28,20,16,0.25);
+  }
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    fill: var(--gold);
+  }
+  .logo-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--gold-light);
+  }
+  .header-stats {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .stat-pill {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(250,247,242,0.7);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .stat-pill span {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--gold-light);
+    margin-right: 4px;
+  }
+
+  /* MAIN */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  /* FILTERS BAR */
+  .filters-bar {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+  .search-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    stroke: var(--ink-muted);
+    fill: none;
+    stroke-width: 2;
+  }
+  input[type="text"] {
+    width: 100%;
+    padding: 9px 12px 9px 36px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    background: var(--cream);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus { border-color: var(--burgundy-light); }
+  input[type="text"]::placeholder { color: var(--ink-muted); }
+
+  .filter-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 7px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 20px;
+    background: transparent;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    color: var(--ink-mid);
+    cursor: pointer;
+    transition: all 0.18s;
+    letter-spacing: 0.02em;
+  }
+  .filter-btn:hover { border-color: var(--burgundy-light); color: var(--burgundy); background: var(--burgundy-pale); }
+  .filter-btn.active {
+    background: var(--burgundy);
+    border-color: var(--burgundy);
+    color: var(--cream);
+  }
+  .filter-sep {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+    align-self: center;
+  }
+
+  /* SORT ROW */
+  .sort-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .results-count {
+    font-size: 13px;
+    color: var(--ink-muted);
+    font-weight: 300;
+  }
+  .results-count strong { color: var(--ink-mid); font-weight: 500; }
+  .sort-select {
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--white);
+    color: var(--ink-mid);
+    cursor: pointer;
+    outline: none;
+  }
+
+  /* BOTTLE GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .bottle-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s, transform 0.2s;
+    cursor: default;
+    position: relative;
+  }
+  .bottle-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .wine-type-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  .dot-rouge { background: #7B2D35; }
+  .dot-blanc { background: #C4A456; }
+  .dot-rose { background: #E07A8A; }
+  .dot-mousseux { background: #7AA8C4; }
+
+  .wine-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--ink);
+    flex: 1;
+    margin: 0 10px 0 8px;
+  }
+  .card-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .bottle-card:hover .card-actions { opacity: 1; }
+  .btn-icon {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .btn-icon:hover { background: var(--cream-dark); }
+  .btn-icon.consume:hover { background: #FFF0F0; border-color: #C0392B; }
+  .btn-icon.edit:hover { background: var(--burgundy-pale); border-color: var(--burgundy-light); }
+  .btn-icon svg { width: 14px; height: 14px; fill: none; stroke: var(--ink-mid); stroke-width: 2; }
+  .btn-icon.consume svg { stroke: #C0392B; }
+  .btn-icon.edit svg { stroke: var(--burgundy); }
+
+  .card-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .badge-type-rouge { background: #F5E8EA; color: #7B2D35; }
+  .badge-type-blanc { background: #FBF6E8; color: #7A5C1A; }
+  .badge-type-rose { background: #FCEEF0; color: #8B3545; }
+  .badge-type-mousseux { background: #E8F2F8; color: #1E5C80; }
+  .badge-arome { background: var(--cream-dark); color: var(--ink-muted); }
+  .badge-region { background: var(--cream-dark); color: var(--ink-muted); }
+
+  .card-details {
+    font-size: 13px;
+    color: var(--ink-muted);
+    line-height: 1.6;
+  }
+  .card-details .row {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 8px;
+  }
+  .card-details .label { font-weight: 400; }
+  .card-details .value { color: var(--ink-mid); font-weight: 500; }
+
+  .pairings {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .pairing-tag {
+    font-size: 11px;
+    padding: 2px 7px;
+    background: var(--gold-light);
+    color: var(--ink-mid);
+    border-radius: 3px;
+  }
+
+  .qty-badge {
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    background: var(--burgundy);
+    color: var(--cream);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-family: 'Jost', sans-serif;
+  }
+  .qty-badge.low { background: #C0392B; }
+  .qty-badge.aging { background: var(--gold); color: var(--ink); }
+
+  /* EMPTY STATE */
+  .empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--ink-muted);
+    grid-column: 1 / -1;
+  }
+  .empty svg { width: 48px; height: 48px; stroke: var(--border-strong); fill: none; stroke-width: 1; margin-bottom: 1rem; }
+  .empty h3 { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--ink-mid); margin-bottom: 6px; }
+  .empty p { font-size: 14px; }
+
+  /* FAB */
+  .fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--burgundy);
+    color: var(--cream);
+    border: none;
+    border-radius: 50px;
+    padding: 14px 24px;
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,45,62,0.4);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    z-index: 99;
+    letter-spacing: 0.02em;
+  }
+  .fab:hover { background: var(--burgundy-light); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(107,45,62,0.5); }
+  .fab svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+  /* MODAL OVERLAY */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(28,20,16,0.55);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(28,20,16,0.25);
+    position: relative;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .close-btn {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+  .close-btn:hover { background: var(--cream-dark); }
+  .close-btn svg { width: 14px; height: 14px; fill: none; stroke: var(--ink-mid); stroke-width: 2; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 9px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--cream);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus { border-color: var(--burgundy-light); }
+  .form-group textarea { resize: vertical; min-height: 72px; }
+
+  .pairing-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .pairing-chip {
+    padding: 5px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--ink-mid);
+    background: transparent;
+    font-family: 'Jost', sans-serif;
+    transition: all 0.15s;
+  }
+  .pairing-chip:hover { background: var(--gold-light); border-color: var(--gold); }
+  .pairing-chip.selected { background: var(--gold); border-color: var(--gold); color: var(--ink); font-weight: 500; }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .btn-secondary {
+    padding: 9px 18px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: transparent;
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    color: var(--ink-mid);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-secondary:hover { background: var(--cream-dark); }
+  .btn-primary {
+    padding: 9px 22px;
+    background: var(--burgundy);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--cream);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--burgundy-light); }
+
+  /* PASSWORD MODAL */
+  .pwd-notice {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+  .pwd-error {
+    color: #C0392B;
+    font-size: 13px;
+    margin-top: 6px;
+    display: none;
+  }
+
+  /* CONFIRM MODAL */
+  .confirm-text {
+    font-size: 15px;
+    color: var(--ink-mid);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+  .btn-danger {
+    padding: 9px 22px;
+    background: #C0392B;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-danger:hover { background: #A93226; }
+
+  /* EXPORT/IMPORT */
+  .util-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .btn-util {
+    padding: 7px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--white);
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    color: var(--ink-mid);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .btn-util:hover { background: var(--cream-dark); }
+  .btn-util svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--ink);
+    color: var(--cream);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* AGING INDICATOR */
+  .aging-note {
+    font-size: 12px;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .aging-note svg { width: 12px; height: 12px; fill: none; stroke: var(--gold); stroke-width: 2; }
+
+  @media (max-width: 600px) {
+    main { padding: 1rem; }
+    .header-stats { display: none; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <svg class="logo-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2 C12 2 8 8 8 14 C8 18.4 10.6 22 14 23.4 L14 30 L18 30 L18 23.4 C21.4 22 24 18.4 24 14 C24 8 20 2 20 2 Z" fill="currentColor" opacity="0.9"/>
+        <path d="M14 23.4 L14 30 L18 30 L18 23.4" fill="none" stroke="rgba(250,247,242,0.3)" stroke-width="1"/>
+      </svg>
+      <span class="logo-text">Ma Cave à Vin</span>
+    </div>
+    <div class="header-stats">
+      <div class="stat-pill"><span id="stat-total">0</span> bouteilles</div>
+      <div class="stat-pill"><span id="stat-regions">0</span> régions</div>
+      <div class="stat-pill"><span id="stat-aging">0</span> en garde</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="util-row">
+    <button class="btn-util" onclick="exportData()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exporter vers OneDrive
+    </button>
+    <label class="btn-util" style="cursor:pointer">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Importer depuis OneDrive
+      <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+    </label>
+  </div>
+
+  <div class="filters-bar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search" placeholder="Chercher par nom, domaine, millésime…" oninput="renderBottles()">
+    </div>
+    <div class="filter-sep"></div>
+    <div class="filter-group" id="type-filters">
+      <button class="filter-btn active" onclick="setFilter('type','tous')">Tous</button>
+      <button class="filter-btn" onclick="setFilter('type','rouge')">Rouge</button>
+      <button class="filter-btn" onclick="setFilter('type','blanc')">Blanc</button>
+      <button class="filter-btn" onclick="setFilter('type','rosé')">Rosé</button>
+      <button class="filter-btn" onclick="setFilter('type','mousseux')">Mousseux</button>
+    </div>
+    <div class="filter-sep"></div>
+    <div class="filter-group" id="arome-filters">
+      <button class="filter-btn active" onclick="setFilter('arome','tous')">Tous</button>
+      <button class="filter-btn" onclick="setFilter('arome','sec')">Sec</button>
+      <button class="filter-btn" onclick="setFilter('arome','demi-sec')">Demi-sec</button>
+      <button class="filter-btn" onclick="setFilter('arome','doux')">Doux</button>
+    </div>
+  </div>
+
+  <div class="sort-row">
+    <div class="results-count" id="results-count"></div>
+    <select class="sort-select" onchange="renderBottles()" id="sort-select">
+      <option value="name">Nom A→Z</option>
+      <option value="year-asc">Millésime ↑</option>
+      <option value="year-desc">Millésime ↓</option>
+      <option value="region">Région</option>
+      <option value="qty">Quantité</option>
+    </select>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</main>
+
+<button class="fab" onclick="openAddModal()">
+  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  Ajouter une bouteille
+</button>
+
+<!-- ADD/EDIT MODAL -->
+<div class="overlay" id="modal-add">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal('modal-add')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="modal-title" id="modal-add-title">Ajouter une bouteille</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Nom du vin *</label>
+        <input type="text" id="f-name" placeholder="Ex : Château Margaux">
+      </div>
+      <div class="form-group">
+        <label>Domaine / Producteur</label>
+        <input type="text" id="f-producer" placeholder="Ex : Famille Mentzelopoulos">
+      </div>
+      <div class="form-group">
+        <label>Région *</label>
+        <input type="text" id="f-region" placeholder="Ex : Bordeaux, Bourgogne…" list="regions-list">
+        <datalist id="regions-list"></datalist>
+      </div>
+      <div class="form-group">
+        <label>Appellation</label>
+        <input type="text" id="f-appellation" placeholder="Ex : AOC Margaux">
+      </div>
+      <div class="form-group">
+        <label>Type *</label>
+        <select id="f-type">
+          <option value="rouge">Rouge</option>
+          <option value="blanc">Blanc</option>
+          <option value="rosé">Rosé</option>
+          <option value="mousseux">Mousseux</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Arôme</label>
+        <select id="f-arome">
+          <option value="sec">Sec</option>
+          <option value="demi-sec">Demi-sec</option>
+          <option value="doux">Doux</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Millésime</label>
+        <input type="number" id="f-year" placeholder="Ex : 2018" min="1900" max="2099">
+      </div>
+      <div class="form-group">
+        <label>Quantité</label>
+        <input type="number" id="f-qty" value="1" min="1">
+      </div>
+      <div class="form-group">
+        <label>Date d'achat</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="form-group">
+        <label>Garder jusqu'en</label>
+        <input type="number" id="f-aging" placeholder="Ex : 2030 (optionnel)" min="2000" max="2099">
+      </div>
+      <div class="form-group full">
+        <label>Notes personnelles</label>
+        <textarea id="f-notes" placeholder="Arômes, texture, occasion…"></textarea>
+      </div>
+      <div class="form-group full">
+        <label>Accords mets</label>
+        <div class="pairing-chips" id="pairing-chips"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-add')">Annuler</button>
+      <button class="btn-primary" onclick="saveBottle()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="overlay" id="modal-pwd">
+  <div class="modal" style="max-width: 380px;">
+    <button class="close-btn" onclick="closeModal('modal-pwd')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="modal-title">Accès propriétaire</div>
+    <p class="pwd-notice">Saisissez le mot de passe pour modifier la cave.</p>
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input type="password" id="pwd-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPassword()">
+      <div class="pwd-error" id="pwd-error">Mot de passe incorrect.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-pwd')">Annuler</button>
+      <button class="btn-primary" onclick="checkPassword()">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="overlay" id="modal-confirm">
+  <div class="modal" style="max-width: 380px;">
+    <div class="modal-title">Consommer cette bouteille ?</div>
+    <p class="confirm-text" id="confirm-text"></p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-confirm')">Annuler</button>
+      <button class="btn-danger" onclick="confirmConsume()">Consommer</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const PAIRINGS_OPTIONS = ['Viande rouge','Viande blanche','Gibier','Poisson','Fruits de mer','Fromage','Charcuterie','Volaille','Veau','Agneau','Champignons','Risotto','Dessert','Apéritif'];
+const DEFAULT_PASSWORD = 'cave2024';
+const STORAGE_KEY = 'cave_bouteilles';
+const PWD_SESSION_KEY = 'cave_auth';
+
+let bottles = [];
+let filters = { type: 'tous', arome: 'tous' };
+let pendingAction = null;
+
+function load() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  bottles = raw ? JSON.parse(raw) : getSampleData();
+  save();
+}
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(bottles));
+}
+function isAuth() {
+  return sessionStorage.getItem(PWD_SESSION_KEY) === '1';
+}
+function requireAuth(cb) {
+  if (isAuth()) { cb(); return; }
+  pendingAction = cb;
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('pwd-error').style.display = 'none';
+  openModal('modal-pwd');
+}
+function checkPassword() {
+  const val = document.getElementById('pwd-input').value;
+  const stored = localStorage.getItem('cave_pwd') || DEFAULT_PASSWORD;
+  if (val === stored) {
+    sessionStorage.setItem(PWD_SESSION_KEY, '1');
+    closeModal('modal-pwd');
+    if (pendingAction) { pendingAction(); pendingAction = null; }
+  } else {
+    document.getElementById('pwd-error').style.display = 'block';
+  }
+}
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function setFilter(key, val) {
+  filters[key] = val;
+  const groupId = key === 'type' ? 'type-filters' : 'arome-filters';
+  document.querySelectorAll('#' + groupId + ' .filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderBottles();
+}
+
+function getFiltered() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  return bottles.filter(b => {
+    if (filters.type !== 'tous' && b.type !== filters.type) return false;
+    if (filters.arome !== 'tous' && b.arome !== filters.arome) return false;
+    if (q) {
+      const hay = [b.name, b.producer, b.region, b.appellation, String(b.year)].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function getSorted(arr) {
+  const s = document.getElementById('sort-select').value;
+  return [...arr].sort((a, b) => {
+    if (s === 'name') return a.name.localeCompare(b.name, 'fr');
+    if (s === 'year-asc') return (a.year || 0) - (b.year || 0);
+    if (s === 'year-desc') return (b.year || 0) - (a.year || 0);
+    if (s === 'region') return (a.region || '').localeCompare(b.region || '', 'fr');
+    if (s === 'qty') return b.qty - a.qty;
+    return 0;
+  });
+}
+
+function renderBottles() {
+  const filtered = getSorted(getFiltered());
+  const grid = document.getElementById('grid');
+  const count = document.getElementById('results-count');
+  count.innerHTML = `<strong>${filtered.length}</strong> résultat${filtered.length !== 1 ? 's' : ''}`;
+
+  updateStats();
+  updateRegionsList();
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty">
+      <svg viewBox="0 0 48 48"><path d="M18 4 C18 4 12 12 12 21 C12 27.6 15.9 33 21 35.1 L21 45 L27 45 L27 35.1 C32.1 33 36 27.6 36 21 C36 12 30 4 30 4 Z"/></svg>
+      <h3>Aucune bouteille trouvée</h3>
+      <p>Modifiez vos filtres ou ajoutez de nouvelles bouteilles.</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(b => {
+    const typeClass = 'dot-' + b.type.replace('é','e');
+    const badgeClass = 'badge-type-' + b.type.replace('é','e');
+    const currentYear = new Date().getFullYear();
+    const isAging = b.agingUntil && b.agingUntil > currentYear;
+    const agingDone = b.agingUntil && b.agingUntil <= currentYear;
+    const qtyClass = b.qty <= 1 ? 'low' : isAging ? 'aging' : '';
+
+    return `<div class="bottle-card">
+      <span class="qty-badge ${qtyClass}">×${b.qty}</span>
+      <div class="card-header">
+        <div class="wine-type-dot ${typeClass}"></div>
+        <div class="wine-name">${esc(b.name)}</div>
+        <div class="card-actions">
+          <button class="btn-icon edit" title="Modifier" onclick="openEditModal('${b.id}')">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn-icon consume" title="Consommer" onclick="askConsume('${b.id}')">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="card-meta">
+        <span class="badge ${badgeClass}">${b.type}</span>
+        ${b.arome ? `<span class="badge badge-arome">${b.arome}</span>` : ''}
+        ${b.region ? `<span class="badge badge-region">${esc(b.region)}</span>` : ''}
+      </div>
+      <div class="card-details">
+        ${b.producer ? `<div style="font-size:13px;color:var(--ink-mid);margin-bottom:4px;font-style:italic">${esc(b.producer)}</div>` : ''}
+        ${b.appellation ? `<div style="font-size:12px;color:var(--ink-muted);margin-bottom:6px">${esc(b.appellation)}</div>` : ''}
+        ${(b.year || b.purchaseDate) ? `<div class="row">
+          ${b.year ? `<span class="label">Millésime</span><span class="value">${b.year}</span>` : ''}
+        </div>` : ''}
+        ${b.purchaseDate ? `<div class="row"><span class="label">Acheté le</span><span class="value">${formatDate(b.purchaseDate)}</span></div>` : ''}
+        ${isAging ? `<div class="aging-note"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>À garder jusqu'en ${b.agingUntil}</div>` : ''}
+        ${agingDone ? `<div class="aging-note" style="color:#5B8C5A"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Prêt à boire !</div>` : ''}
+        ${b.notes ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:8px;font-style:italic;line-height:1.5">${esc(b.notes)}</div>` : ''}
+      </div>
+      ${b.pairings && b.pairings.length ? `<div class="pairings">${b.pairings.map(p => `<span class="pairing-tag">${esc(p)}</span>`).join('')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = bottles.reduce((s,b) => s + (b.qty||1), 0);
+  document.getElementById('stat-regions').textContent = new Set(bottles.map(b => b.region).filter(Boolean)).size;
+  const now = new Date().getFullYear();
+  document.getElementById('stat-aging').textContent = bottles.filter(b => b.agingUntil && b.agingUntil > now).length;
+}
+
+function updateRegionsList() {
+  const regions = [...new Set(bottles.map(b => b.region).filter(Boolean))];
+  document.getElementById('regions-list').innerHTML = regions.map(r => `<option value="${esc(r)}">`).join('');
+}
+
+function openAddModal() {
+  requireAuth(() => {
+    document.getElementById('edit-id').value = '';
+    document.getElementById('modal-add-title').textContent = 'Ajouter une bouteille';
+    clearForm();
+    openModal('modal-add');
+  });
+}
+function openEditModal(id) {
+  requireAuth(() => {
+    const b = bottles.find(x => x.id === id);
+    if (!b) return;
+    document.getElementById('edit-id').value = id;
+    document.getElementById('modal-add-title').textContent = 'Modifier la bouteille';
+    document.getElementById('f-name').value = b.name || '';
+    document.getElementById('f-producer').value = b.producer || '';
+    document.getElementById('f-region').value = b.region || '';
+    document.getElementById('f-appellation').value = b.appellation || '';
+    document.getElementById('f-type').value = b.type || 'rouge';
+    document.getElementById('f-arome').value = b.arome || 'sec';
+    document.getElementById('f-year').value = b.year || '';
+    document.getElementById('f-qty').value = b.qty || 1;
+    document.getElementById('f-date').value = b.purchaseDate || '';
+    document.getElementById('f-aging').value = b.agingUntil || '';
+    document.getElementById('f-notes').value = b.notes || '';
+    renderPairingChips(b.pairings || []);
+    openModal('modal-add');
+  });
+}
+function clearForm() {
+  ['f-name','f-producer','f-region','f-appellation','f-year','f-date','f-aging','f-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-qty').value = 1;
+  document.getElementById('f-type').value = 'rouge';
+  document.getElementById('f-arome').value = 'sec';
+  renderPairingChips([]);
+}
+function renderPairingChips(selected) {
+  document.getElementById('pairing-chips').innerHTML = PAIRINGS_OPTIONS.map(p =>
+    `<button type="button" class="pairing-chip ${selected.includes(p) ? 'selected' : ''}" onclick="togglePairing(this,'${p}')">${p}</button>`
+  ).join('');
+}
+function togglePairing(el, val) { el.classList.toggle('selected'); }
+
+function saveBottle() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { showToast('Le nom du vin est requis.'); return; }
+  const selectedPairings = [...document.querySelectorAll('#pairing-chips .pairing-chip.selected')].map(el => el.textContent);
+  const data = {
+    name,
+    producer: document.getElementById('f-producer').value.trim(),
+    region: document.getElementById('f-region').value.trim(),
+    appellation: document.getElementById('f-appellation').value.trim(),
+    type: document.getElementById('f-type').value,
+    arome: document.getElementById('f-arome').value,
+    year: parseInt(document.getElementById('f-year').value) || null,
+    qty: parseInt(document.getElementById('f-qty').value) || 1,
+    purchaseDate: document.getElementById('f-date').value || null,
+    agingUntil: parseInt(document.getElementById('f-aging').value) || null,
+    notes: document.getElementById('f-notes').value.trim(),
+    pairings: selectedPairings,
+  };
+  const editId = document.getElementById('edit-id').value;
+  if (editId) {
+    const idx = bottles.findIndex(b => b.id === editId);
+    if (idx !== -1) bottles[idx] = { ...bottles[idx], ...data };
+    showToast('Bouteille modifiée.');
+  } else {
+    data.id = 'b' + Date.now();
+    bottles.push(data);
+    showToast('Bouteille ajoutée !');
+  }
+  save();
+  closeModal('modal-add');
+  renderBottles();
+}
+
+let consumeTarget = null;
+function askConsume(id) {
+  requireAuth(() => {
+    consumeTarget = id;
+    const b = bottles.find(x => x.id === id);
+    if (!b) return;
+    document.getElementById('confirm-text').textContent = `Vous êtes sur le point de retirer une unité de "${b.name}" (${b.year || '?'}). S'il ne reste qu'une bouteille, elle sera supprimée de la cave.`;
+    openModal('modal-confirm');
+  });
+}
+function confirmConsume() {
+  const b = bottles.find(x => x.id === consumeTarget);
+  if (!b) return;
+  if (b.qty > 1) { b.qty--; showToast(`Une bouteille de ${b.name} consommée. Il en reste ${b.qty}.`); }
+  else { bottles = bottles.filter(x => x.id !== consumeTarget); showToast(`${b.name} retiré de la cave.`); }
+  save();
+  closeModal('modal-confirm');
+  renderBottles();
+}
+
+function exportData() {
+  const json = JSON.stringify(bottles, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'cave_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Export téléchargé — sauvegardez-le sur OneDrive.');
+}
+function importData(e) {
+  requireAuth(() => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try {
+        const data = JSON.parse(evt.target.result);
+        if (!Array.isArray(data)) throw new Error();
+        bottles = data;
+        save();
+        renderBottles();
+        showToast(`${data.length} bouteilles importées.`);
+      } catch { showToast('Fichier invalide.'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  const [y, m, day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getSampleData() {
+  return [
+    { id:'s1', name:'Château Pichon Baron', producer:'Pichon Baron', region:'Bordeaux', appellation:'AOC Pauillac', type:'rouge', arome:'sec', year:2018, qty:3, purchaseDate:'2021-06-15', agingUntil:2030, notes:'Très structuré, tanins serrés. À attendre.', pairings:['Viande rouge','Gibier','Fromage'] },
+    { id:'s2', name:'Puligny-Montrachet', producer:'Domaine Leflaive', region:'Bourgogne', appellation:"AOC Puligny-Montrachet", type:'blanc', arome:'sec', year:2020, qty:2, purchaseDate:'2022-03-10', agingUntil:null, notes:'Minéral, notes de noisette.', pairings:['Poisson','Fruits de mer','Volaille'] },
+    { id:'s3', name:'Côtes de Provence', producer:'Château Miraval', region:'Provence', appellation:'AOC Côtes de Provence', type:'rosé', arome:'sec', year:2022, qty:6, purchaseDate:'2023-07-01', agingUntil:null, notes:'Léger, fruité.', pairings:['Poisson','Charcuterie','Apéritif'] },
+    { id:'s4', name:'Sauternes', producer:'Château d\'Yquem', region:'Bordeaux', appellation:'AOC Sauternes', type:'blanc', arome:'doux', year:2015, qty:1, purchaseDate:'2020-11-20', agingUntil:2035, notes:'Exceptionnel. Réserver pour grande occasion.', pairings:['Dessert','Fromage','Foie gras'] },
+    { id:'s5', name:'Champagne Brut', producer:'Krug', region:'Champagne', appellation:'AOC Champagne', type:'mousseux', arome:'sec', year:2012, qty:2, purchaseDate:'2022-12-25', agingUntil:null, notes:'Bulles fines, toasté.', pairings:['Apéritif','Fruits de mer','Volaille'] },
+    { id:'s6', name:'Gigondas', producer:'Domaine Les Pallières', region:'Rhône', appellation:'AOC Gigondas', type:'rouge', arome:'sec', year:2019, qty:4, purchaseDate:'2022-09-05', agingUntil:2028, notes:'Grenache dominant, épicé.', pairings:['Gibier','Viande rouge','Fromage'] },
+  ];
+}
+
+load();
+renderBottles();
+</script>
+</body>
+</html>
