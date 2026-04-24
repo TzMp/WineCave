@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ma Cave à Vin</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   :root {
     --burgundy: #6B2D3E;
@@ -101,6 +102,7 @@
     margin-bottom: 1.5rem;
     border-bottom: 1px solid var(--border);
     padding-bottom: 0.5rem;
+    overflow-x: auto;
   }
   .tab-btn {
     background: none;
@@ -113,6 +115,7 @@
     padding: 0.5rem 1rem;
     position: relative;
     transition: color 0.2s;
+    white-space: nowrap;
   }
   .tab-btn:hover { color: var(--ink); }
   .tab-btn.active { color: var(--burgundy); }
@@ -386,6 +389,29 @@
     font-size: 14px; 
     color: var(--ink-muted); 
     text-align: right;
+  }
+
+  /* STATS SECTION */
+  .stats-controls {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chart-container {
+    max-width: 500px;
+    margin: 0 auto;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
   }
 
   /* EMPTY STATE */
@@ -669,6 +695,7 @@
 <main>
   <div class="tabs-container">
     <button class="tab-btn active" id="tab-cave" onclick="showView('cave')">Ma Cave</button>
+    <button class="tab-btn" id="tab-stats" onclick="showView('stats')">Statistiques</button>
     <button class="tab-btn" id="tab-history" onclick="requireAuth(() => showView('history'))">Historique</button>
   </div>
 
@@ -688,7 +715,7 @@
     <div class="filters-bar">
       <div class="search-wrap">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="search" placeholder="Chercher par nom, domaine, millésime…" oninput="renderBottles()">
+        <input type="text" id="search" placeholder="Chercher par nom, domaine, millésime, pays…" oninput="renderBottles()">
       </div>
       <div class="filter-sep"></div>
       <div class="filter-group" id="type-filters">
@@ -721,6 +748,34 @@
     <div class="grid" id="grid"></div>
   </div>
 
+  <div id="view-stats" style="display:none;">
+    <div class="stats-controls">
+      <div class="form-group">
+        <label>Critère principal</label>
+        <select id="stat-primary" onchange="renderChart()">
+          <option value="type">Type (Rouge, Blanc...)</option>
+          <option value="arome">Douceur (Sec, Doux...)</option>
+          <option value="region">Région</option>
+          <option value="country">Pays</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Critère secondaire (Combiné)</label>
+        <select id="stat-secondary" onchange="renderChart()">
+          <option value="none">Aucun</option>
+          <option value="type">Type</option>
+          <option value="arome">Douceur</option>
+          <option value="region">Région</option>
+          <option value="country">Pays</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="myPieChart"></canvas>
+    </div>
+  </div>
+
   <div id="view-history" style="display:none;">
     <div id="history-container"></div>
   </div>
@@ -747,7 +802,12 @@
         <input type="text" id="f-producer" placeholder="Ex : Famille Mentzelopoulos">
       </div>
       <div class="form-group">
-        <label>Région *</label>
+        <label>Pays</label>
+        <input type="text" id="f-country" placeholder="Ex : France" list="countries-list">
+        <datalist id="countries-list"></datalist>
+      </div>
+      <div class="form-group">
+        <label>Région</label>
         <input type="text" id="f-region" placeholder="Ex : Bordeaux, Bourgogne…" list="regions-list">
         <datalist id="regions-list"></datalist>
       </div>
@@ -765,7 +825,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Arôme</label>
+        <label>Douceur / Arôme</label>
         <select id="f-arome">
           <option value="sec">Sec</option>
           <option value="demi-sec">Demi-sec</option>
@@ -851,6 +911,7 @@ let bottles = [];
 let historyData = [];
 let filters = { type: 'tous', arome: 'tous' };
 let pendingAction = null;
+let pieChartInstance = null; // Pour stocker l'instance du graphique
 
 function load() {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -894,22 +955,26 @@ function checkPassword() {
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-// VIEW TOGGLING (CAVE / HISTORY)
+// VIEW TOGGLING (CAVE / STATS / HISTORY)
 function showView(view) {
-  if (view === 'history') {
-    document.getElementById('tab-cave').classList.remove('active');
-    document.getElementById('tab-history').classList.add('active');
-    document.getElementById('view-cave').style.display = 'none';
-    document.getElementById('view-history').style.display = 'block';
-    document.getElementById('fab-add').style.display = 'none';
-    renderHistory();
-  } else {
-    document.getElementById('tab-history').classList.remove('active');
-    document.getElementById('tab-cave').classList.add('active');
-    document.getElementById('view-history').style.display = 'none';
-    document.getElementById('view-cave').style.display = 'block';
-    document.getElementById('fab-add').style.display = 'flex';
-    renderBottles();
+  const views = ['cave', 'stats', 'history'];
+  views.forEach(v => {
+    document.getElementById('tab-' + v).classList.remove('active');
+    document.getElementById('view-' + v).style.display = 'none';
+  });
+  
+  document.getElementById('tab-' + view).classList.add('active');
+  document.getElementById('view-' + view).style.display = 'block';
+
+  if (view === 'cave') { 
+    document.getElementById('fab-add').style.display = 'flex'; 
+    renderBottles(); 
+  } else if (view === 'history') { 
+    document.getElementById('fab-add').style.display = 'none'; 
+    renderHistory(); 
+  } else if (view === 'stats') {
+    document.getElementById('fab-add').style.display = 'none'; 
+    renderChart();
   }
 }
 
@@ -927,7 +992,7 @@ function getFiltered() {
     if (filters.type !== 'tous' && b.type !== filters.type) return false;
     if (filters.arome !== 'tous' && b.arome !== filters.arome) return false;
     if (q) {
-      const hay = [b.name, b.producer, b.region, b.appellation, String(b.year)].join(' ').toLowerCase();
+      const hay = [b.name, b.producer, b.country, b.region, b.appellation, String(b.year)].join(' ').toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -953,7 +1018,7 @@ function renderBottles() {
   count.innerHTML = `<strong>${filtered.length}</strong> résultat${filtered.length !== 1 ? 's' : ''}`;
 
   updateStats();
-  updateRegionsList();
+  updateDatalists();
 
   if (filtered.length === 0) {
     grid.innerHTML = `<div class="empty">
@@ -989,7 +1054,7 @@ function renderBottles() {
       <div class="card-meta">
         <span class="badge ${badgeClass}">${b.type}</span>
         ${b.arome ? `<span class="badge badge-arome">${b.arome}</span>` : ''}
-        ${b.region ? `<span class="badge badge-region">${esc(b.region)}</span>` : ''}
+        ${b.region || b.country ? `<span class="badge badge-region">${esc(b.region || '')} ${b.country ? '('+esc(b.country)+')' : ''}</span>` : ''}
       </div>
       <div class="card-details">
         ${b.producer ? `<div style="font-size:13px;color:var(--ink-mid);margin-bottom:4px;font-style:italic">${esc(b.producer)}</div>` : ''}
@@ -1018,7 +1083,6 @@ function renderHistory() {
     return;
   }
   
-  // Trier de la consommation la plus récente à la plus ancienne
   const sorted = [...historyData].sort((a, b) => new Date(b.consumedDate) - new Date(a.consumedDate));
   
   container.innerHTML = `<div class="history-list">` + sorted.map(b => `
@@ -1034,6 +1098,76 @@ function renderHistory() {
   `).join('') + `</div>`;
 }
 
+// LOGIQUE DES STATISTIQUES (CHART.JS)
+function renderChart() {
+  const primary = document.getElementById('stat-primary').value;
+  const secondary = document.getElementById('stat-secondary').value;
+
+  // Calcul des données
+  const dataMap = {};
+  bottles.forEach(b => {
+    let key1 = b[primary] ? b[primary].charAt(0).toUpperCase() + b[primary].slice(1) : 'Non renseigné';
+    let label = key1;
+
+    if (secondary !== 'none') {
+      // Éviter la redondance si les deux critères sont identiques
+      if (primary !== secondary) {
+        let key2 = b[secondary] ? b[secondary].charAt(0).toUpperCase() + b[secondary].slice(1) : 'Non renseigné';
+        label = `${key1} - ${key2}`;
+      }
+    }
+    
+    // On somme le nombre de bouteilles totales (et non pas juste les lignes)
+    dataMap[label] = (dataMap[label] || 0) + (b.qty || 1);
+  });
+
+  const labels = Object.keys(dataMap);
+  const data = Object.values(dataMap);
+
+  // Génération de couleurs dynamiques
+  const bgColors = [
+    '#6B2D3E', '#C4A456', '#4A3728', '#8B7355', '#E8D5A0', '#8B4455', '#E07A8A', '#7AA8C4', '#F0EBE3'
+  ];
+
+  // Si le graphique existe déjà, on le détruit avant d'en recréer un
+  if (pieChartInstance) {
+    pieChartInstance.destroy();
+  }
+
+  const ctx = document.getElementById('myPieChart').getContext('2d');
+  pieChartInstance = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: bgColors.slice(0, labels.length).concat(Array(Math.max(0, labels.length - bgColors.length)).fill('#CCCCCC')),
+        borderWidth: 2,
+        borderColor: '#ffffff'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { family: 'Jost' } }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let label = context.label || '';
+              if (label) label += ' : ';
+              label += context.raw + ' bouteille(s)';
+              return label;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
 function updateStats() {
   document.getElementById('stat-total').textContent = bottles.reduce((s,b) => s + (b.qty||1), 0);
   document.getElementById('stat-regions').textContent = new Set(bottles.map(b => b.region).filter(Boolean)).size;
@@ -1041,9 +1175,12 @@ function updateStats() {
   document.getElementById('stat-aging').textContent = bottles.filter(b => b.agingUntil && b.agingUntil > now).length;
 }
 
-function updateRegionsList() {
+function updateDatalists() {
   const regions = [...new Set(bottles.map(b => b.region).filter(Boolean))];
   document.getElementById('regions-list').innerHTML = regions.map(r => `<option value="${esc(r)}">`).join('');
+  
+  const countries = [...new Set(bottles.map(b => b.country).filter(Boolean))];
+  document.getElementById('countries-list').innerHTML = countries.map(c => `<option value="${esc(c)}">`).join('');
 }
 
 function openAddModal() {
@@ -1063,6 +1200,7 @@ function openEditModal(id) {
     document.getElementById('modal-add-title').textContent = 'Modifier la bouteille';
     document.getElementById('f-name').value = b.name || '';
     document.getElementById('f-producer').value = b.producer || '';
+    document.getElementById('f-country').value = b.country || '';
     document.getElementById('f-region').value = b.region || '';
     document.getElementById('f-appellation').value = b.appellation || '';
     document.getElementById('f-type').value = b.type || 'rouge';
@@ -1078,7 +1216,7 @@ function openEditModal(id) {
 }
 
 function clearForm() {
-  ['f-name','f-producer','f-region','f-appellation','f-year','f-date','f-aging','f-notes'].forEach(id => document.getElementById(id).value = '');
+  ['f-name','f-producer','f-country','f-region','f-appellation','f-year','f-date','f-aging','f-notes'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-qty').value = 1;
   document.getElementById('f-type').value = 'rouge';
   document.getElementById('f-arome').value = 'sec';
@@ -1099,6 +1237,7 @@ function saveBottle() {
   const data = {
     name,
     producer: document.getElementById('f-producer').value.trim(),
+    country: document.getElementById('f-country').value.trim(),
     region: document.getElementById('f-region').value.trim(),
     appellation: document.getElementById('f-appellation').value.trim(),
     type: document.getElementById('f-type').value,
@@ -1122,7 +1261,13 @@ function saveBottle() {
   }
   save();
   closeModal('modal-add');
-  renderBottles();
+  
+  // Si on est sur l'onglet stats, on le met à jour aussi
+  if (document.getElementById('tab-stats').classList.contains('active')) {
+    renderChart();
+  } else {
+    renderBottles();
+  }
 }
 
 let consumeTarget = null;
@@ -1143,14 +1288,12 @@ function confirmConsume() {
   
   const cDate = document.getElementById('consume-date').value || new Date().toISOString().split('T')[0];
   
-  // Ajout à l'historique
   historyData.push({
     ...b,
     consumedDate: cDate,
     historyId: 'h' + Date.now()
   });
 
-  // Mise à jour de la cave
   if (b.qty > 1) { 
     b.qty--; 
     showToast(`Une bouteille de ${b.name} consommée. Il en reste ${b.qty}.`); 
@@ -1165,7 +1308,6 @@ function confirmConsume() {
 }
 
 function exportData() {
-  // On exporte à la fois la cave et l'historique
   const dataToExport = {
     bottles: bottles,
     history: historyData
@@ -1190,12 +1332,10 @@ function importData(e) {
       try {
         const data = JSON.parse(evt.target.result);
         
-        // Rétrocompatibilité si on importe un ancien fichier qui contenait juste un tableau
         if (Array.isArray(data)) {
           bottles = data;
           historyData = [];
         } else if (data.bottles) {
-          // Nouveau format (avec historique)
           bottles = data.bottles;
           historyData = data.history || [];
         } else {
@@ -1204,9 +1344,10 @@ function importData(e) {
         
         save();
         
-        // Rafraîchir la vue active
         if (document.getElementById('tab-history').classList.contains('active')) {
           renderHistory();
+        } else if (document.getElementById('tab-stats').classList.contains('active')) {
+          renderChart();
         } else {
           renderBottles();
         }
@@ -1238,12 +1379,12 @@ function esc(s) {
 
 function getSampleData() {
   return [
-    { id:'s1', name:'Château Pichon Baron', producer:'Pichon Baron', region:'Bordeaux', appellation:'AOC Pauillac', type:'rouge', arome:'sec', year:2018, qty:3, purchaseDate:'2021-06-15', agingUntil:2030, notes:'Très structuré, tanins serrés. À attendre.', pairings:['Viande rouge','Gibier','Fromage'] },
-    { id:'s2', name:'Puligny-Montrachet', producer:'Domaine Leflaive', region:'Bourgogne', appellation:"AOC Puligny-Montrachet", type:'blanc', arome:'sec', year:2020, qty:2, purchaseDate:'2022-03-10', agingUntil:null, notes:'Minéral, notes de noisette.', pairings:['Poisson','Fruits de mer','Volaille'] },
-    { id:'s3', name:'Côtes de Provence', producer:'Château Miraval', region:'Provence', appellation:'AOC Côtes de Provence', type:'rosé', arome:'sec', year:2022, qty:6, purchaseDate:'2023-07-01', agingUntil:null, notes:'Léger, fruité.', pairings:['Poisson','Charcuterie','Apéritif'] },
-    { id:'s4', name:'Sauternes', producer:'Château d\'Yquem', region:'Bordeaux', appellation:'AOC Sauternes', type:'blanc', arome:'doux', year:2015, qty:1, purchaseDate:'2020-11-20', agingUntil:2035, notes:'Exceptionnel. Réserver pour grande occasion.', pairings:['Dessert','Fromage','Foie gras'] },
-    { id:'s5', name:'Champagne Brut', producer:'Krug', region:'Champagne', appellation:'AOC Champagne', type:'mousseux', arome:'sec', year:2012, qty:2, purchaseDate:'2022-12-25', agingUntil:null, notes:'Bulles fines, toasté.', pairings:['Apéritif','Fruits de mer','Volaille'] },
-    { id:'s6', name:'Gigondas', producer:'Domaine Les Pallières', region:'Rhône', appellation:'AOC Gigondas', type:'rouge', arome:'sec', year:2019, qty:4, purchaseDate:'2022-09-05', agingUntil:2028, notes:'Grenache dominant, épicé.', pairings:['Gibier','Viande rouge','Fromage'] },
+    { id:'s1', name:'Château Pichon Baron', producer:'Pichon Baron', country: 'France', region:'Bordeaux', appellation:'AOC Pauillac', type:'rouge', arome:'sec', year:2018, qty:3, purchaseDate:'2021-06-15', agingUntil:2030, notes:'Très structuré, tanins serrés. À attendre.', pairings:['Viande rouge','Gibier','Fromage'] },
+    { id:'s2', name:'Puligny-Montrachet', producer:'Domaine Leflaive', country: 'France', region:'Bourgogne', appellation:"AOC Puligny-Montrachet", type:'blanc', arome:'sec', year:2020, qty:2, purchaseDate:'2022-03-10', agingUntil:null, notes:'Minéral, notes de noisette.', pairings:['Poisson','Fruits de mer','Volaille'] },
+    { id:'s3', name:'Côtes de Provence', producer:'Château Miraval', country: 'France', region:'Provence', appellation:'AOC Côtes de Provence', type:'rosé', arome:'sec', year:2022, qty:6, purchaseDate:'2023-07-01', agingUntil:null, notes:'Léger, fruité.', pairings:['Poisson','Charcuterie','Apéritif'] },
+    { id:'s4', name:'Sauternes', producer:'Château d\'Yquem', country: 'France', region:'Bordeaux', appellation:'AOC Sauternes', type:'blanc', arome:'doux', year:2015, qty:1, purchaseDate:'2020-11-20', agingUntil:2035, notes:'Exceptionnel. Réserver pour grande occasion.', pairings:['Dessert','Fromage','Foie gras'] },
+    { id:'s5', name:'Champagne Brut', producer:'Krug', country: 'France', region:'Champagne', appellation:'AOC Champagne', type:'mousseux', arome:'sec', year:2012, qty:2, purchaseDate:'2022-12-25', agingUntil:null, notes:'Bulles fines, toasté.', pairings:['Apéritif','Fruits de mer','Volaille'] },
+    { id:'s6', name:'Gigondas', producer:'Domaine Les Pallières', country: 'France', region:'Rhône', appellation:'AOC Gigondas', type:'rouge', arome:'sec', year:2019, qty:4, purchaseDate:'2022-09-05', agingUntil:2028, notes:'Grenache dominant, épicé.', pairings:['Gibier','Viande rouge','Fromage'] },
   ];
 }
 
