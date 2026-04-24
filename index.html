@@ -414,6 +414,39 @@
     box-shadow: var(--shadow);
   }
 
+  /* STATS LEGEND LIST */
+  .chart-legend-list {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .legend-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  .legend-label-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .legend-color-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-value {
+    font-weight: 500;
+    color: var(--ink-mid);
+  }
+
   /* EMPTY STATE */
   .empty {
     text-align: center;
@@ -773,6 +806,7 @@
 
     <div class="chart-container">
       <canvas id="myPieChart"></canvas>
+      <div id="chart-legend-list" class="chart-legend-list"></div>
     </div>
   </div>
 
@@ -1128,12 +1162,16 @@ function renderChart() {
   const bgColors = [
     '#6B2D3E', '#C4A456', '#4A3728', '#8B7355', '#E8D5A0', '#8B4455', '#E07A8A', '#7AA8C4', '#F0EBE3'
   ];
+  
+  // Tableau de couleurs étendu si besoin
+  const finalColors = bgColors.slice(0, labels.length).concat(Array(Math.max(0, labels.length - bgColors.length)).fill('#CCCCCC'));
 
-  // Si le graphique existe déjà, on le détruit avant d'en recréer un
+  // Détruire l'instance précédente
   if (pieChartInstance) {
     pieChartInstance.destroy();
   }
 
+  // 1. Générer le graphique Chart.js
   const ctx = document.getElementById('myPieChart').getContext('2d');
   pieChartInstance = new Chart(ctx, {
     type: 'pie',
@@ -1141,7 +1179,7 @@ function renderChart() {
       labels: labels,
       datasets: [{
         data: data,
-        backgroundColor: bgColors.slice(0, labels.length).concat(Array(Math.max(0, labels.length - bgColors.length)).fill('#CCCCCC')),
+        backgroundColor: finalColors,
         borderWidth: 2,
         borderColor: '#ffffff'
       }]
@@ -1150,8 +1188,7 @@ function renderChart() {
       responsive: true,
       plugins: {
         legend: {
-          position: 'bottom',
-          labels: { font: { family: 'Jost' } }
+          display: false // On masque la légende par défaut pour utiliser notre propre liste
         },
         tooltip: {
           callbacks: {
@@ -1165,6 +1202,30 @@ function renderChart() {
         }
       }
     }
+  });
+
+  // 2. Remplir la liste sous le graphique
+  const legendContainer = document.getElementById('chart-legend-list');
+  legendContainer.innerHTML = ''; // Nettoyer
+  
+  if (labels.length === 0) {
+    legendContainer.innerHTML = '<p style="text-align:center; color:var(--ink-muted);">Aucune donnée à afficher.</p>';
+    return;
+  }
+
+  labels.forEach((label, index) => {
+    const val = data[index];
+    const color = finalColors[index];
+    
+    legendContainer.innerHTML += `
+      <div class="legend-item">
+        <div class="legend-label-group">
+          <div class="legend-color-dot" style="background-color: ${color}"></div>
+          <span>${esc(label)}</span>
+        </div>
+        <span class="legend-value">${val} bouteille${val > 1 ? 's' : ''}</span>
+      </div>
+    `;
   });
 }
 
@@ -1262,7 +1323,6 @@ function saveBottle() {
   save();
   closeModal('modal-add');
   
-  // Si on est sur l'onglet stats, on le met à jour aussi
   if (document.getElementById('tab-stats').classList.contains('active')) {
     renderChart();
   } else {
