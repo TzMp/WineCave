@@ -1144,34 +1144,33 @@ function renderChart() {
     let label = key1;
 
     if (secondary !== 'none') {
-      // Éviter la redondance si les deux critères sont identiques
       if (primary !== secondary) {
         let key2 = b[secondary] ? b[secondary].charAt(0).toUpperCase() + b[secondary].slice(1) : 'Non renseigné';
         label = `${key1} - ${key2}`;
       }
     }
     
-    // On somme le nombre de bouteilles totales (et non pas juste les lignes)
     dataMap[label] = (dataMap[label] || 0) + (b.qty || 1);
   });
 
-  const labels = Object.keys(dataMap);
-  const data = Object.values(dataMap);
+  // TRI PAR ORDRE DECROISSANT DE TAILLE
+  const sortedData = Object.entries(dataMap)
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count);
 
-  // Génération de couleurs dynamiques
+  const labels = sortedData.map(item => item.label);
+  const data = sortedData.map(item => item.count);
+
   const bgColors = [
     '#6B2D3E', '#C4A456', '#4A3728', '#8B7355', '#E8D5A0', '#8B4455', '#E07A8A', '#7AA8C4', '#F0EBE3'
   ];
   
-  // Tableau de couleurs étendu si besoin
   const finalColors = bgColors.slice(0, labels.length).concat(Array(Math.max(0, labels.length - bgColors.length)).fill('#CCCCCC'));
 
-  // Détruire l'instance précédente
   if (pieChartInstance) {
     pieChartInstance.destroy();
   }
 
-  // 1. Générer le graphique Chart.js
   const ctx = document.getElementById('myPieChart').getContext('2d');
   pieChartInstance = new Chart(ctx, {
     type: 'pie',
@@ -1188,14 +1187,20 @@ function renderChart() {
       responsive: true,
       plugins: {
         legend: {
-          display: false // On masque la légende par défaut pour utiliser notre propre liste
+          display: false
         },
         tooltip: {
           callbacks: {
             label: function(context) {
               let label = context.label || '';
               if (label) label += ' : ';
-              label += context.raw + ' bouteille(s)';
+              
+              // CALCUL DU POURCENTAGE DANS L'INFOBULLE
+              const value = context.raw;
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = Math.round((value / total) * 100);
+              
+              label += `${value} bouteille(s) (${percentage}%)`;
               return label;
             }
           }
@@ -1204,18 +1209,21 @@ function renderChart() {
     }
   });
 
-  // 2. Remplir la liste sous le graphique
   const legendContainer = document.getElementById('chart-legend-list');
-  legendContainer.innerHTML = ''; // Nettoyer
+  legendContainer.innerHTML = ''; 
   
   if (labels.length === 0) {
     legendContainer.innerHTML = '<p style="text-align:center; color:var(--ink-muted);">Aucune donnée à afficher.</p>';
     return;
   }
 
+  // CALCUL DU POURCENTAGE DANS LA LISTE DE LEGENDE
+  const totalBottles = data.reduce((a, b) => a + b, 0);
+
   labels.forEach((label, index) => {
     const val = data[index];
     const color = finalColors[index];
+    const pct = Math.round((val / totalBottles) * 100);
     
     legendContainer.innerHTML += `
       <div class="legend-item">
@@ -1223,7 +1231,7 @@ function renderChart() {
           <div class="legend-color-dot" style="background-color: ${color}"></div>
           <span>${esc(label)}</span>
         </div>
-        <span class="legend-value">${val} bouteille${val > 1 ? 's' : ''}</span>
+        <span class="legend-value">${val} bouteille${val > 1 ? 's' : ''} (${pct}%)</span>
       </div>
     `;
   });
