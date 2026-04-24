@@ -207,12 +207,14 @@
     align-self: center;
   }
 
-  /* SORT ROW */
+  /* SORT ROW & TOGGLE VUE */
   .sort-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 12px;
   }
   .results-count {
     font-size: 13px;
@@ -220,6 +222,29 @@
     font-weight: 300;
   }
   .results-count strong { color: var(--ink-mid); font-weight: 500; }
+  
+  .view-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .view-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--white);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    color: var(--ink-mid);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .view-toggle:hover { background: var(--cream-dark); }
+  .view-toggle svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+  
   .sort-select {
     padding: 6px 10px;
     background: var(--white);
@@ -241,6 +266,8 @@
     transition: box-shadow 0.2s, transform 0.2s;
     cursor: default;
     position: relative;
+    display: flex;
+    flex-direction: column;
   }
   .bottle-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
 
@@ -322,6 +349,7 @@
     font-size: 13px;
     color: var(--ink-muted);
     line-height: 1.6;
+    flex: 1;
   }
   .card-details .row {
     display: flex;
@@ -361,6 +389,30 @@
   }
   .qty-badge.low { background: #C0392B; }
   .qty-badge.aging { background: var(--gold); color: var(--ink); }
+
+  /* COMPACT MODE STYLES */
+  .grid.compact .extra-info {
+    display: none;
+  }
+  .expand-btn {
+    display: none;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-top: 1px dashed var(--border);
+    padding-top: 8px;
+    margin-top: 8px;
+    cursor: pointer;
+    color: var(--ink-muted);
+    text-align: center;
+    transition: color 0.15s;
+  }
+  .expand-btn:hover { color: var(--burgundy); }
+  .expand-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; transition: transform 0.2s; }
+  
+  .grid.compact .expand-btn { display: block; }
+  .grid.compact .bottle-card.expanded .extra-info { display: block; }
+  .grid.compact .bottle-card.expanded .expand-btn svg { transform: rotate(180deg); }
 
   /* HISTORY LIST */
   .history-list {
@@ -769,13 +821,19 @@
 
     <div class="sort-row">
       <div class="results-count" id="results-count"></div>
-      <select class="sort-select" onchange="renderBottles()" id="sort-select">
-        <option value="name">Nom A→Z</option>
-        <option value="year-asc">Millésime ↑</option>
-        <option value="year-desc">Millésime ↓</option>
-        <option value="region">Région</option>
-        <option value="qty">Quantité</option>
-      </select>
+      <div class="view-controls">
+        <button class="view-toggle" id="view-toggle-btn" onclick="toggleCompactView()">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Vue Compacte
+        </button>
+        <select class="sort-select" onchange="renderBottles()" id="sort-select">
+          <option value="name">Nom A→Z</option>
+          <option value="year-asc">Millésime ↑</option>
+          <option value="year-desc">Millésime ↓</option>
+          <option value="region">Région</option>
+          <option value="qty">Quantité</option>
+        </select>
+      </div>
     </div>
 
     <div class="grid" id="grid"></div>
@@ -945,7 +1003,8 @@ let bottles = [];
 let historyData = [];
 let filters = { type: 'tous', arome: 'tous' };
 let pendingAction = null;
-let pieChartInstance = null; // Pour stocker l'instance du graphique
+let pieChartInstance = null;
+let isCompactView = false; // Variable pour la vue compacte
 
 function load() {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -989,7 +1048,6 @@ function checkPassword() {
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-// VIEW TOGGLING (CAVE / STATS / HISTORY)
 function showView(view) {
   const views = ['cave', 'stats', 'history'];
   views.forEach(v => {
@@ -1010,6 +1068,27 @@ function showView(view) {
     document.getElementById('fab-add').style.display = 'none'; 
     renderChart();
   }
+}
+
+// FONCTION DE BASCULE VUE COMPACTE
+function toggleCompactView() {
+  isCompactView = !isCompactView;
+  const grid = document.getElementById('grid');
+  const btn = document.getElementById('view-toggle-btn');
+  
+  if (isCompactView) {
+    grid.classList.add('compact');
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Vue Classique`;
+  } else {
+    grid.classList.remove('compact');
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> Vue Compacte`;
+    document.querySelectorAll('.bottle-card.expanded').forEach(c => c.classList.remove('expanded'));
+  }
+}
+
+// BASCULER UNE CARTE SPÉCIFIQUE
+function toggleCard(btn) {
+  btn.closest('.bottle-card').classList.toggle('expanded');
 }
 
 function setFilter(key, val) {
@@ -1073,6 +1152,7 @@ function renderBottles() {
 
     return `<div class="bottle-card">
       <span class="qty-badge ${qtyClass}">×${b.qty}</span>
+      
       <div class="card-header">
         <div class="wine-type-dot ${typeClass}"></div>
         <div class="wine-name">${esc(b.name)}</div>
@@ -1085,23 +1165,33 @@ function renderBottles() {
           </button>
         </div>
       </div>
+      
       <div class="card-meta">
         <span class="badge ${badgeClass}">${b.type}</span>
         ${b.arome ? `<span class="badge badge-arome">${b.arome}</span>` : ''}
         ${b.region || b.country ? `<span class="badge badge-region">${esc(b.region || '')} ${b.country ? '('+esc(b.country)+')' : ''}</span>` : ''}
       </div>
+      
       <div class="card-details">
         ${b.producer ? `<div style="font-size:13px;color:var(--ink-mid);margin-bottom:4px;font-style:italic">${esc(b.producer)}</div>` : ''}
         ${b.appellation ? `<div style="font-size:12px;color:var(--ink-muted);margin-bottom:6px">${esc(b.appellation)}</div>` : ''}
-        ${(b.year || b.purchaseDate) ? `<div class="row">
-          ${b.year ? `<span class="label">Millésime</span><span class="value">${b.year}</span>` : ''}
-        </div>` : ''}
-        ${b.purchaseDate ? `<div class="row"><span class="label">Acheté le</span><span class="value">${formatDate(b.purchaseDate)}</span></div>` : ''}
-        ${isAging ? `<div class="aging-note"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>À garder jusqu'en ${b.agingUntil}</div>` : ''}
-        ${agingDone ? `<div class="aging-note" style="color:#5B8C5A"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Prêt à boire !</div>` : ''}
-        ${b.notes ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:8px;font-style:italic;line-height:1.5">${esc(b.notes)}</div>` : ''}
+        
+        <div class="extra-info">
+          ${(b.year) ? `<div class="row">
+            <span class="label">Millésime</span><span class="value">${b.year}</span>
+          </div>` : ''}
+          ${b.purchaseDate ? `<div class="row"><span class="label">Acheté le</span><span class="value">${formatDate(b.purchaseDate)}</span></div>` : ''}
+          ${isAging ? `<div class="aging-note"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>À garder jusqu'en ${b.agingUntil}</div>` : ''}
+          ${agingDone ? `<div class="aging-note" style="color:#5B8C5A"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Prêt à boire !</div>` : ''}
+          ${b.notes ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:8px;font-style:italic;line-height:1.5">${esc(b.notes)}</div>` : ''}
+          ${b.pairings && b.pairings.length ? `<div class="pairings">${b.pairings.map(p => `<span class="pairing-tag">${esc(p)}</span>`).join('')}</div>` : ''}
+        </div>
       </div>
-      ${b.pairings && b.pairings.length ? `<div class="pairings">${b.pairings.map(p => `<span class="pairing-tag">${esc(p)}</span>`).join('')}</div>` : ''}
+      
+      <button class="expand-btn" onclick="toggleCard(this)" title="Voir plus">
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      
     </div>`;
   }).join('');
 }
@@ -1137,7 +1227,6 @@ function renderChart() {
   const primary = document.getElementById('stat-primary').value;
   const secondary = document.getElementById('stat-secondary').value;
 
-  // Calcul des données
   const dataMap = {};
   bottles.forEach(b => {
     let key1 = b[primary] ? b[primary].charAt(0).toUpperCase() + b[primary].slice(1) : 'Non renseigné';
@@ -1153,7 +1242,6 @@ function renderChart() {
     dataMap[label] = (dataMap[label] || 0) + (b.qty || 1);
   });
 
-  // TRI PAR ORDRE DECROISSANT DE TAILLE
   const sortedData = Object.entries(dataMap)
     .map(([label, count]) => ({ label, count }))
     .sort((a, b) => b.count - a.count);
@@ -1195,7 +1283,6 @@ function renderChart() {
               let label = context.label || '';
               if (label) label += ' : ';
               
-              // CALCUL DU POURCENTAGE DANS L'INFOBULLE
               const value = context.raw;
               const total = context.dataset.data.reduce((a, b) => a + b, 0);
               const percentage = Math.round((value / total) * 100);
@@ -1217,7 +1304,6 @@ function renderChart() {
     return;
   }
 
-  // CALCUL DU POURCENTAGE DANS LA LISTE DE LEGENDE
   const totalBottles = data.reduce((a, b) => a + b, 0);
 
   labels.forEach((label, index) => {
