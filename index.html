@@ -375,20 +375,7 @@
     border-radius: 3px;
   }
 
-  .qty-badge {
-    position: absolute;
-    top: -8px;
-    right: 12px;
-    background: var(--burgundy);
-    color: var(--cream);
-    font-size: 11px;
-    font-weight: 500;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-family: 'Jost', sans-serif;
-  }
-  .qty-badge.low { background: #C0392B; }
-  .qty-badge.aging { background: var(--gold); color: var(--ink); }
+  /* qty-badge styles moved to GIST/UI section below */
 
   /* COMPACT MODE STYLES */
   .grid.compact .extra-info {
@@ -791,6 +778,79 @@
   .gist-status.err { background: #FDECEA; color: #C62828; display: block; }
   .gist-status.loading { background: var(--cream-dark); color: var(--ink-muted); display: block; }
 
+  /* SYNC DROPDOWN */
+  .sync-dropdown { position: relative; }
+  .sync-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    background: var(--white);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    box-shadow: var(--shadow-md);
+    min-width: 170px;
+    z-index: 200;
+    overflow: hidden;
+    padding: 4px;
+  }
+  .sync-menu.open { display: block; }
+  .sync-menu button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    color: var(--ink-mid);
+    cursor: pointer;
+    border-radius: 6px;
+    text-align: left;
+  }
+  .sync-menu button:hover { background: var(--cream-dark); }
+  .sync-menu button svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; flex-shrink: 0; }
+  .sync-menu-sep { height: 1px; background: var(--border); margin: 4px 0; }
+
+  /* GRID BOTTOM FADE */
+  .grid-wrap {
+    position: relative;
+  }
+  .grid-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: linear-gradient(to bottom, transparent, var(--cream));
+    pointer-events: none;
+  }
+
+  /* WINE TYPE DOT COLORS */
+  .dot-rouge { background: #7B2535 !important; }
+  .dot-blanc { background: #C4A456 !important; }
+  .dot-rose  { background: #E8A0A8 !important; }
+  .dot-mousseux { background: #8BAFC4 !important; }
+
+  /* QTY BADGE — now inside card at bottom */
+  .qty-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: var(--cream-dark);
+    color: var(--ink-mid);
+    border: 1px solid var(--border);
+    margin-top: 10px;
+    align-self: flex-start;
+  }
+  .qty-badge.low { background: #FDECEA; color: #C62828; border-color: rgba(198,40,40,0.2); }
+  .qty-badge.aging { background: var(--burgundy-pale); color: var(--burgundy); border-color: rgba(107,45,62,0.2); }
+
   /* GUEST BANNER */
   #guest-banner {
     display: none;
@@ -834,19 +894,29 @@
   </div>
 
   <div class="util-row" id="util-row">
-    <!-- Boutons admin (cachés en mode lecture) -->
-    <button class="btn-util admin-only" onclick="saveToGist()" id="btn-save-gist" style="display:none">
-      <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v14a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-      Sauvegarder sur Gist
-    </button>
-    <button class="btn-util admin-only" onclick="loadFromGist()" id="btn-load-gist" style="display:none">
-      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Charger depuis Gist
-    </button>
-    <button class="btn-util admin-only" onclick="openGistSettings()" id="btn-gist-settings" style="display:none">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Paramètres Gist
-    </button>
+    <!-- Dropdown sync (admin only) -->
+    <div class="sync-dropdown admin-only" id="sync-dropdown-wrap" style="display:none; position:relative;">
+      <button class="btn-util" onclick="toggleSyncMenu(event)">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Sync Gist
+        <svg viewBox="0 0 24 24" style="width:12px;height:12px"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="sync-menu" id="sync-menu">
+        <button onclick="saveToGist(); closeSyncMenu()">
+          <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v14a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Sauvegarder
+        </button>
+        <button onclick="loadFromGist(); closeSyncMenu()">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Charger
+        </button>
+        <div class="sync-menu-sep"></div>
+        <button onclick="openGistSettings(); closeSyncMenu()">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Paramètres
+        </button>
+      </div>
+    </div>
     <!-- Badge mode lecture (visible aux invités) -->
     <div id="guest-badge" style="display:none; align-items:center; gap:8px; padding:7px 14px; background:var(--cream-dark); border:1px solid var(--border-strong); border-radius:8px; font-size:13px; color:var(--ink-muted);">
       <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -894,7 +964,9 @@
       </div>
     </div>
 
-    <div class="grid" id="grid"></div>
+    <div class="grid-wrap">
+      <div class="grid" id="grid"></div>
+    </div>
   </div>
 
   <div id="view-stats" style="display:none;">
@@ -1099,16 +1171,30 @@ function isGuestMode() {
 
 function applyMode() {
   const guest = isGuestMode();
-  // Show/hide admin buttons
   document.querySelectorAll('.admin-only').forEach(el => {
     el.style.display = guest ? 'none' : 'flex';
   });
   document.getElementById('guest-badge').style.display = guest ? 'flex' : 'none';
   document.getElementById('fab-add').style.display = guest ? 'none' : 'flex';
-  // Hide history tab for guests
   if (guest) {
     document.getElementById('tab-history').style.display = 'none';
   }
+}
+
+function toggleSyncMenu(e) {
+  e.stopPropagation();
+  document.getElementById('sync-menu').classList.toggle('open');
+}
+function closeSyncMenu() {
+  document.getElementById('sync-menu').classList.remove('open');
+}
+document.addEventListener('click', () => closeSyncMenu());
+
+function deleteHistoryEntry(id) {
+  historyData = historyData.filter(h => h.id !== id);
+  save();
+  renderHistory();
+  showToast('Entrée supprimée de l\'historique.');
 }
 
 // ─── LOCAL STORAGE ────────────────────────────────────────────────────────────
@@ -1361,11 +1447,12 @@ function renderBottles() {
     const agingDone = b.agingUntil && b.agingUntil <= currentYear;
     const qtyClass = b.qty <= 1 ? 'low' : isAging ? 'aging' : '';
 
+    // Dot class: rouge, blanc, rose, mousseux
+    const dotClass = 'dot-' + b.type.replace('é','e').replace('é','e');
+
     return `<div class="bottle-card">
-      <span class="qty-badge ${qtyClass}">×${b.qty}</span>
-      
       <div class="card-header">
-        <div class="wine-type-dot ${typeClass}"></div>
+        <div class="wine-type-dot ${dotClass}"></div>
         <div class="wine-name">${esc(b.name)}</div>
         <div class="card-actions">
           <button class="btn-icon edit" title="Modifier" onclick="openEditModal('${b.id}')">
@@ -1397,6 +1484,8 @@ function renderBottles() {
           ${b.notes ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:8px;font-style:italic;line-height:1.5">${esc(b.notes)}</div>` : ''}
           ${b.pairings && b.pairings.length ? `<div class="pairings">${b.pairings.map(p => `<span class="pairing-tag">${esc(p)}</span>`).join('')}</div>` : ''}
         </div>
+
+        <span class="qty-badge ${qtyClass}">×${b.qty} bouteille${b.qty > 1 ? 's' : ''}</span>
       </div>
       
       <button class="expand-btn" onclick="toggleCard(this)" title="Voir plus">
@@ -1429,6 +1518,9 @@ function renderHistory() {
       <div class="history-date">
         Consommée le <br><strong>${formatDate(b.consumedDate)}</strong>
       </div>
+      <button onclick="deleteHistoryEntry('${b.id}')" title="Supprimer cette entrée" style="background:none;border:none;cursor:pointer;padding:6px;color:var(--ink-muted);border-radius:6px;flex-shrink:0;transition:color 0.15s,background 0.15s;" onmouseover="this.style.color='#C62828';this.style.background='#FDECEA'" onmouseout="this.style.color='var(--ink-muted)';this.style.background='none'">
+        <svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>
     </div>
   `).join('') + `</div>`;
 }
