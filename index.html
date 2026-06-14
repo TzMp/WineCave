@@ -1295,7 +1295,7 @@ async function loadFromGist() {
 
 // Public (no token) fetch for guests — reads raw Gist content
 async function loadFromGistPublic() {
-  const gistId = localStorage.getItem(GIST_ID_KEY);
+  const gistId = localStorage.getItem(GIST_ID_KEY) || "a070236f1d1e8233212139e63da72dec";
   if (!gistId) return; // No Gist configured, use localStorage data
   try {
     const res = await fetch(`https://api.github.com/gists/${gistId}`);
